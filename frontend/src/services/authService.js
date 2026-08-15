@@ -46,9 +46,37 @@ export const authService = {
       throw new Error('Supabase is not configured for Google login');
     }
 
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    const accessToken = data.session?.access_token;
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const errorParam = urlParams.get('error');
+
+    if (errorParam) {
+      throw new Error(urlParams.get('error_description') || 'Google authentication failed');
+    }
+
+    let accessToken;
+
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      
+      if (error) {
+        console.error('exchangeCodeForSession error:', error);
+        throw error;
+      }
+      
+      accessToken = data?.session?.access_token;
+      
+      // Clean up the URL to remove the single-use code
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } else {
+      // Fallback for implicit grant or existing session
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      accessToken = data?.session?.access_token;
+    }
+
     if (!accessToken) {
       throw new Error('Google authentication session was not created');
     }
