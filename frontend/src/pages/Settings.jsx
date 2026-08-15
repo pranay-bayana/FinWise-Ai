@@ -381,7 +381,7 @@ const Settings = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (!window.confirm('Are you sure you want to reset all offline data? This action cannot be undone and will delete all local data.')) return;
+                  if (!window.confirm('Reset offline data? This will delete all local data.')) return;
                   offlineStore.reset();
                   toast.success('Offline data reset');
                   fetchSettings();
