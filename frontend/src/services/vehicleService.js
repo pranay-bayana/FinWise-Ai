@@ -11,13 +11,13 @@ export const vehicleService = {
   },
 
   createVehicle: async (data) => {
-    if (OFFLINE) return offlineApi.vehicles.create(data);
+    if (OFFLINE) return { vehicle: offlineApi.vehicles.create(data) };
     const response = await api.post('/vehicles', data);
     return response.data;
   },
 
   updateVehicle: async (id, data) => {
-    if (OFFLINE) return offlineApi.vehicles.update(id, data);
+    if (OFFLINE) return { vehicle: offlineApi.vehicles.update(id, data) };
     const response = await api.put(`/vehicles/${id}`, data);
     return response.data;
   },
@@ -35,7 +35,7 @@ export const vehicleService = {
   },
 
   createVehicleExpense: async (vehicleId, data) => {
-    if (OFFLINE) return offlineApi.vehicles.createExpense(vehicleId, data);
+    if (OFFLINE) return { expense: offlineApi.vehicles.createExpense(vehicleId, data) };
     const response = await api.post(`/vehicles/${vehicleId}/expenses`, data);
     return response.data;
   },
@@ -47,7 +47,7 @@ export const vehicleService = {
   },
 
   createVehicleReminder: async (vehicleId, data) => {
-    if (OFFLINE) return offlineApi.vehicles.createReminder(vehicleId, data);
+    if (OFFLINE) return { reminder: offlineApi.vehicles.createReminder(vehicleId, data) };
     const response = await api.post(`/vehicles/${vehicleId}/reminders`, data);
     return response.data;
   },
@@ -56,5 +56,5 @@ export const vehicleService = {
     if (OFFLINE) return offlineApi.vehicles.analytics(vehicleId);
     const response = await api.get(`/vehicles/${vehicleId}/analytics`);
     return response.data;
-  },
+  }
 };

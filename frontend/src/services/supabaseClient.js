@@ -1,12 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/^["']|["']$/g, '').trim();
+if (supabaseUrl && !/^https?:\/\//i.test(supabaseUrl)) {
+  supabaseUrl = `https://${supabaseUrl}`;
+}
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.replace(/^["']|["']$/g, '').trim();
 
 const hasSupabaseConfig =
-  supabaseUrl &&
-  supabaseAnonKey &&
-  /^https?:\/\//i.test(supabaseUrl) &&
+  Boolean(supabaseUrl) &&
+  Boolean(supabaseAnonKey) &&
   !supabaseUrl.includes('your_supabase') &&
   !supabaseAnonKey.includes('your_supabase');
 
