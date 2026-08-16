@@ -5,6 +5,9 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../services/jwtService.js';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
+import { Resend } from 'resend';
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Helper to create JWT
 const createToken = (userId) => {
@@ -186,9 +189,11 @@ export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: 'Email is required' });
 
+  const genericMessage = 'If an account exists with this email, a reset link has been sent.';
+
   const { data: user } = await supabase.from('users').select('id, email').eq('email', email).single();
   if (!user) {
-    return res.json({ message: 'If an account exists with this email, a reset link has been sent.' });
+    return res.json({ message: genericMessage });
   }
 
   const token = crypto.randomBytes(32).toString('hex');
@@ -202,14 +207,43 @@ export const forgotPassword = async (req, res) => {
   });
 
   if (error) {
-    return res.status(500).json({ message: 'Failed to create reset token', details: error.message });
+    console.error('Failed to create reset token:', error.message);
+    return res.status(500).json({ message: 'Failed to process request' });
   }
 
-  const payload = { message: 'If an account exists with this email, a reset link has been sent.' };
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+  if (resend && process.env.EMAIL_FROM) {
+    try {
+      await resend.emails.send({
+        from: `FinWise AI <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: 'Reset Your FinWise AI Password',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #10b981;">FinWise AI</h2>
+            <p>We received a request to reset your password. Click the button below to choose a new one:</p>
+            <a href="${resetUrl}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold;">Reset Password</a>
+            <p style="color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
+            <p style="color: #666; font-size: 14px; margin-top: 30px;">If you did not request this, you can safely ignore this email.</p>
+          </div>
+        `
+      });
+    } catch (emailError) {
+      console.error('Failed to send reset email:', emailError);
+    }
+  } else {
+    console.warn('RESEND_API_KEY or EMAIL_FROM not configured. Reset email was not sent.');
+  }
+
+  const payload = { message: genericMessage };
+  
   if (process.env.NODE_ENV !== 'production') {
     payload.resetToken = token;
-    payload.resetUrl = `${process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000'}/reset-password?token=${token}`;
+    payload.resetUrl = resetUrl;
   }
+  
   return res.json(payload);
 };
 
