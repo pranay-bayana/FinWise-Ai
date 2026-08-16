@@ -128,11 +128,11 @@ const Dashboard = () => {
 
         {/* Stat Cards */}
         <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-5 gap-3 stagger-children">
-          <StatCard icon={TrendingUp} label="Income" value={fmt(analytics?.totalIncome || 0)} color="from-emerald-400 to-emerald-600" trend="up" />
-          <StatCard icon={TrendingDown} label="Expenses" value={fmt(analytics?.totalExpenses || 0)} color="from-rose-400 to-rose-600" trend="down" />
-          <StatCard icon={Wallet} label="Savings" value={fmt(analytics?.totalSavings || 0)} color="from-primary-400 to-primary-600" />
-          <StatCard icon={LineChart} label="Investments" value={fmt(analytics?.totalInvestments || 0)} color="from-accent-400 to-accent-600" />
-          <StatCard icon={Landmark} label="Loans" value={fmt(analytics?.totalLoans || 0)} color="from-amber-400 to-orange-500" />
+          <StatCard icon={TrendingUp} label="Income (This Month)" value={fmt(analytics?.totalIncome || 0)} color="from-emerald-400 to-emerald-600" trend="up" />
+          <StatCard icon={TrendingDown} label="Expenses (This Month)" value={fmt(analytics?.totalExpenses || 0)} color="from-rose-400 to-rose-600" trend="down" />
+          <StatCard icon={Wallet} label="Savings (This Month)" value={fmt(analytics?.totalSavings || 0)} color="from-primary-400 to-primary-600" />
+          <StatCard icon={LineChart} label="Total Investments" value={fmt(analytics?.totalInvestments || 0)} color="from-accent-400 to-accent-600" />
+          <StatCard icon={Landmark} label="Outstanding Loans" value={fmt(analytics?.totalLoans || 0)} color="from-amber-400 to-orange-500" />
         </div>
       </div>
 

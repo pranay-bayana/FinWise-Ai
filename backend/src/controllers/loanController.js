@@ -121,11 +121,15 @@ export const deleteLoan = async (req, res) => {
 };
 
 export const getLoanSummary = async (req, res) => {
-  const { data, error } = await supabase.from('loans').select('loan_type,principal_amount,emi_amount').eq('user_id', req.user.id);
+  const { data, error } = await supabase.from('loans').select('loan_type, remaining_balance, principal_amount, emi_amount, status').eq('user_id', req.user.id);
   if (error) return res.status(500).json({ message: 'Fetch failed', details: error.message });
-  const totalLoansTaken = data.filter((l) => l.loan_type === 'taken').reduce((sum, l) => sum + Number(l.principal_amount || 0), 0);
-  const totalLoansGiven = data.filter((l) => l.loan_type === 'given').reduce((sum, l) => sum + Number(l.principal_amount || 0), 0);
-  const totalEMIDue = data.reduce((sum, l) => sum + Number(l.emi_amount || 0), 0);
+  
+  const activeLoans = data.filter(l => l.status === 'active');
+  
+  const totalLoansTaken = activeLoans.filter((l) => l.loan_type === 'taken').reduce((sum, l) => sum + Number(l.remaining_balance ?? l.principal_amount ?? 0), 0);
+  const totalLoansGiven = activeLoans.filter((l) => l.loan_type === 'given').reduce((sum, l) => sum + Number(l.remaining_balance ?? l.principal_amount ?? 0), 0);
+  const totalEMIDue = activeLoans.reduce((sum, l) => sum + Number(l.emi_amount || 0), 0);
+  
   return res.json({ summary: { totalLoansTaken, totalLoansGiven, totalEMIDue } });
 };
 

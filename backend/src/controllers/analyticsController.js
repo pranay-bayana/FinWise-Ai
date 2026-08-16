@@ -28,7 +28,7 @@ export const getDashboard = async (req, res) => {
       .gte('transaction_date', current.start)
       .lte('transaction_date', current.end),
     supabase.from('investments').select('current_value').eq('user_id', userId),
-    supabase.from('loans').select('remaining_balance, principal_amount').eq('user_id', userId),
+    supabase.from('loans').select('loan_type, remaining_balance, principal_amount, status').eq('user_id', userId).eq('status', 'active'),
   ]);
   if (error) return res.status(500).json({ message: 'Fetch failed', details: error.message });
   if (investmentsError) return res.status(500).json({ message: 'Fetch failed', details: investmentsError.message });
@@ -47,7 +47,9 @@ export const getDashboard = async (req, res) => {
     totalExpenses: summary.totalExpense,
     totalSavings: summary.savings,
     totalInvestments: (investments || []).reduce((sum, row) => sum + Number(row.current_value || 0), 0),
-    totalLoans: (loans || []).reduce((sum, row) => sum + Number(row.remaining_balance ?? row.principal_amount ?? 0), 0),
+    totalLoans: (loans || [])
+      .filter((l) => l.loan_type === 'taken')
+      .reduce((sum, row) => sum + Number(row.remaining_balance ?? row.principal_amount ?? 0), 0),
     savingsRate: summary.totalIncome > 0 ? (summary.savings / summary.totalIncome) * 100 : 0,
     categoryBreakdown: breakdown,
     healthScore: health.score,
