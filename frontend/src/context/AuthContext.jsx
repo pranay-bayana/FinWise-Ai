@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
     console.log('[AuthContext] checkAuth started. offline:', offline);
     try {
       if (!offline && window.location.pathname === '/auth/callback') {
-        console.log('[OAuth] AuthContext skipped during callback');
         return;
       }
 
@@ -45,7 +44,6 @@ export const AuthProvider = ({ children }) => {
       if (token && storedUser) {
         console.log('[AuthContext] verifying token with backend...');
         const data = await authService.verifyToken();
-        console.log('[AuthContext] verifyToken succeeded. Has user:', Boolean(data?.user));
         const verifiedUser = data.user || JSON.parse(storedUser);
         localStorage.setItem('user', JSON.stringify(verifiedUser));
         setUser(verifiedUser);

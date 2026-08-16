@@ -35,15 +35,48 @@ const LoadingScreen = () => (
   </div>
 );
 
+const getStoredUser = () => {
+  const token = localStorage.getItem('token');
+  const rawUser = localStorage.getItem('user');
+
+  if (!token || !rawUser) return null;
+
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return null;
+
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '=');
+    const decodedToken = JSON.parse(atob(normalizedPayload));
+    if (!decodedToken?.id || typeof decodedToken.exp !== 'number' || decodedToken.exp * 1000 <= Date.now()) {
+      return null;
+    }
+
+    const parsedUser = JSON.parse(rawUser);
+    if (
+      parsedUser &&
+      typeof parsedUser === 'object' &&
+      parsedUser.id === decodedToken.id &&
+      parsedUser.email
+    ) {
+      return parsedUser;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const offline = import.meta.env.VITE_OFFLINE === 'true';
+  const storedUser = getStoredUser();
   
   if (loading) {
     return <LoadingScreen />;
   }
   
-  if (!offline && !user) {
+  if (!offline && !user && !storedUser) {
     return <Navigate to="/login" />;
   }
   
@@ -53,12 +86,13 @@ const ProtectedRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const offline = import.meta.env.VITE_OFFLINE === 'true';
+  const storedUser = getStoredUser();
   
   if (loading) {
     return <LoadingScreen />;
   }
   
-  if (!offline && user) {
+  if (!offline && (user || storedUser)) {
     return <Navigate to="/dashboard" />;
   }
   
