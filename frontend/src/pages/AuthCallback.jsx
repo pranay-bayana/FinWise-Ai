@@ -13,21 +13,26 @@ const AuthCallback = () => {
 
     const finishLogin = async () => {
       if (hasStartedExchange.current) {
+        console.log('[OAuth] duplicate callback execution prevented');
         return;
       }
       hasStartedExchange.current = true;
       
       try {
+        console.log('[OAuth] callback component exchange requested');
         await completeSupabaseOAuth();
         if (!mounted) {
           return;
         }
         toast.success('Google login successful!');
+        console.log('[OAuth] navigation to dashboard');
         navigate('/dashboard', { replace: true });
       } catch (error) {
-        console.error('[AuthCallback] finishLogin caught error:', error);
+        console.error('[OAuth] callback failed:', error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Unknown error');
+        console.error('[OAuth] callback failure status:', error?.response?.status || 'no-response');
         if (!mounted) return;
         toast.error(error.message || 'Google login failed');
+        console.log('[OAuth] navigation to login');
         navigate('/login', { replace: true });
       }
     };

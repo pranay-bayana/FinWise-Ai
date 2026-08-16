@@ -28,11 +28,21 @@ api.interceptors.response.use(
     // If 401 error and not already retrying
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.warn('[OAuth] API 401 encountered:', {
+        url: originalRequest?.url,
+        status: error.response.status,
+        hasAuthorizationHeader: Boolean(originalRequest?.headers?.Authorization),
+        pathname: window.location.pathname,
+      });
       
       try {
         // Try to verify token with backend
         const token = localStorage.getItem('token');
         if (token) {
+          console.log('[OAuth] API interceptor verifying existing app token:', {
+            hasStoredToken: true,
+            verifyUrl: `${API_URL}/auth/verify`,
+          });
           const response = await axios.get(`${API_URL}/auth/verify`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -45,9 +55,14 @@ api.interceptors.response.use(
         }
       } catch (verifyError) {
         // Token is invalid, clear storage
+        console.warn('[OAuth] API interceptor verify failed:', {
+          status: verifyError?.response?.status || 'no-response',
+          message: verifyError?.response?.data?.message || verifyError?.response?.data?.error || verifyError?.message || 'Unknown error',
+        });
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         if (!window.location.pathname.startsWith('/login')) {
+          console.warn('[OAuth] API interceptor redirecting to login');
           window.location.href = '/login';
         }
         return Promise.reject(error);
