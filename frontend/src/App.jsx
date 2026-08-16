@@ -46,7 +46,7 @@ const getStoredUser = () => {
     if (!payload) return null;
 
     const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '=');
-    const decodedToken = JSON.parse(atob(normalizedPayload));
+    const decodedToken = JSON.parse(window.atob(normalizedPayload));
     if (!decodedToken?.id || typeof decodedToken.exp !== 'number' || decodedToken.exp * 1000 <= Date.now()) {
       return null;
     }

@@ -14,14 +14,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkAuth = async () => {
-    console.log('[AuthContext] checkAuth started. offline:', offline);
     try {
       if (!offline && window.location.pathname === '/auth/callback') {
         return;
       }
 
       if (offline) {
-        console.log('[AuthContext] offline mode, returning early');
         // insecure/offline mode: auto-login (no backend)
         const state = offlineStore.load();
         const data = { token: 'offline-token', user: state.user };
@@ -33,28 +31,21 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
 
-      console.log('[AuthContext] checking local storage. Has token:', !!token, 'Has user:', !!storedUser);
-
       if (token === 'offline-token') {
-        console.log('[AuthContext] found offline-token while online, logging out');
         authService.logout();
         return;
       }
 
       if (token && storedUser) {
-        console.log('[AuthContext] verifying token with backend...');
         const data = await authService.verifyToken();
         const verifiedUser = data.user || JSON.parse(storedUser);
         localStorage.setItem('user', JSON.stringify(verifiedUser));
         setUser(verifiedUser);
-      } else {
-        console.log('[AuthContext] No token or stored user, finishing checkAuth');
       }
     } catch (error) {
       console.error('[AuthContext] checkAuth failed:', error);
       authService.logout();
     } finally {
-      console.log('[AuthContext] checkAuth finally block, setting loading to false');
       setLoading(false);
     }
   };

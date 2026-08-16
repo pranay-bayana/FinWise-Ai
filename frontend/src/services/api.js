@@ -43,7 +43,7 @@ api.interceptors.response.use(
             return api(originalRequest);
           }
         }
-      } catch (verifyError) {
+      } catch {
         // Token is invalid, clear storage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
