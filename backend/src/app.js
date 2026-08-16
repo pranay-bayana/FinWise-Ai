@@ -46,6 +46,12 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 
+// Request logger for Render debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/webauthn', webauthnRoutes);
