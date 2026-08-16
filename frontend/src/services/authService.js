@@ -23,9 +23,8 @@ export const authService = {
       throw new Error('Supabase is not configured for Google login');
     }
 
-    const redirectTo = import.meta.env.PROD 
-      ? 'https://fin-wise-ai-six.vercel.app/auth/callback'
-      : `${window.location.origin}/auth/callback`;
+    const redirectTo = `${window.location.origin}/auth/callback`;
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

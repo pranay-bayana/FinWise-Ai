@@ -16,6 +16,10 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     console.log('[AuthContext] checkAuth started. offline:', offline);
     try {
+      if (!offline && window.location.pathname === '/auth/callback') {
+        return;
+      }
+
       if (offline) {
         console.log('[AuthContext] offline mode, returning early');
         // insecure/offline mode: auto-login (no backend)

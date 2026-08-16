@@ -18,7 +18,7 @@ export const supabase = hasSupabaseConfig
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         flowType: 'pkce',
-        detectSessionInUrl: true,
+        detectSessionInUrl: false, // Disabled to prevent race conditions with manual exchangeCodeForSession
         persistSession: true,
         autoRefreshToken: true,
       },
