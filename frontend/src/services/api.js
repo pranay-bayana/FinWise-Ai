@@ -21,37 +21,17 @@ api.interceptors.request.use((config) => {
 
 // Handle response errors with token refresh
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
+    console.error(`[API Interceptor] Error on ${originalRequest?.url}: status ${error?.response?.status}`);
     
-    // If 401 error and not already retrying
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        // Try to verify token with backend
-        const token = localStorage.getItem('token');
-        if (token) {
-          const response = await axios.get(`${API_URL}/auth/verify`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          if (response.data.user) {
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          }
-        }
-      } catch {
-        // Token is invalid, clear storage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        if (!window.location.pathname.startsWith('/login')) {
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
-      }
+    // If 401 error, token is invalid/expired
+    if (error.response?.status === 401) {
+      console.log(`[API Interceptor] 401 encountered on ${originalRequest?.url}. Token invalid. Let caller handle it.`);
+      // We don't force a hard reload here; let AuthContext or callers handle the 401 gracefully
     }
     
     return Promise.reject(error);
