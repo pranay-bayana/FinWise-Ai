@@ -79,7 +79,7 @@ export const authService = {
       throw new Error('Google authentication session was not created');
     }
 
-    const response = await api.post('/auth/supabase', { access_token: accessToken });
+    const response = await api.post('/auth/supabase', { access_token: accessToken }, { timeout: 120000 });
     return response.data;
   },
 
